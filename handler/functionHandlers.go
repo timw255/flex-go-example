@@ -1,9 +1,12 @@
 package handler
 
 import (
-	"encoding/json"
-
+	jsoniter "github.com/json-iterator/go"
 	"github.com/timw255/flex-go"
+)
+
+var (
+	json = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 type endpointMessage struct {
@@ -35,7 +38,7 @@ func KinveyEndpointHandler(context *flex.Request, complete flex.KinveyCompletion
 // LocalEndpointHandler ...
 func LocalEndpointHandler(context *flex.Request, complete flex.KinveyCompletionHandler, modules flex.Modules) (*flex.Task, *flex.Task) {
 	message := endpointMessage{
-		Message: "Hello from SomeHandler!",
+		Message: "Hello from SomeHandler (Go)!",
 	}
 
 	json, err := json.Marshal(message)

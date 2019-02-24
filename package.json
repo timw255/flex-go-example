@@ -1,0 +1,23 @@
+{
+  "name": "flex-webassembly",
+  "version": "0.0.27",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "clean": "gulp clean",
+    "build": "cmd /C \"set GOOS=js&& set GOARCH=wasm&& go build -ldflags \"-s -w\" -o main.wasm\"",
+    "build-dist": "gulp build-dist",
+    "web": "node www/server.js",
+    "deploy": "node kinvey.js flex deploy",
+    "start": "node ."
+  },
+  "dependencies": {
+    "kinvey-flex-sdk": "^3.2.1"
+  },
+  "devDependencies": {
+    "del": "^3.0.0",
+    "express": "^4.16.4",
+    "gulp": "^4.0.0",
+    "kinvey-cli": "^4.1.1"
+  }
+}

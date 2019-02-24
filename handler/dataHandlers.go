@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/timw255/flex-go"

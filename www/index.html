@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Go wasm</title>
+
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+		integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css"
+		integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous">
+
+	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+	<!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-6">
+				<form>
+					<div class="form-group row">
+						<div class="col">
+							<label for="exampleFormControlSelect1">Task Type</label>
+							<select class="form-control">
+								<option value='{"healthCheck":1}'>Health Check</option>
+								<option value='{"taskType":"serviceDiscovery","request":{},"response":{}}'>Service
+									Discovery
+								</option>
+								<option
+									value='{"appId":"","appMetadata":{},"requestId":"","method":"POST","request":{"method":"POST","headers":{},"username":"","userId":"","objectName":"","tempObjectStore":{},"body":{}},"response":{"status":0,"headers":{},"body":{}},"taskType":"functions","taskName":"local","hookType":"customEndpoint"}'>
+									Flex Function</option>
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<div class="col">
+							<label for="task">Task JSON</label>
+							<textarea class="form-control" id="task" rows="3">{"healthCheck":1}</textarea>
+						</div>
+					</div>
+					<div class="form-group row">
+						<button onClick="run();return false;" id="runButton" class="btn btn-primary mb-2" disabled>Run</button>
+					</div>
+				</form>
+			</div>
+			<div class="col-md-6">
+				<label for="result">Result</label>
+				<pre id="result" style="min-height: 300px"></pre>
+			</div>
+		</div>
+	</div>
+
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+	<script src="https://code.jquery.com/jquery-1.12.4.min.js"
+		integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ"
+		crossorigin="anonymous"></script>
+
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"
+		integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
+		crossorigin="anonymous"></script>
+
+	<!--
+	Add the following polyfill for Microsoft Edge 17/18 support:
+	<script src="https://cdn.jsdelivr.net/npm/text-encoding@0.7.0/lib/encoding.min.js"></script>
+	(see https://caniuse.com/#feat=textencoder)
+	-->
+	<script src="wasm_exec.js"></script>
+	<script>
+		if (!WebAssembly.instantiateStreaming) { // polyfill
+			WebAssembly.instantiateStreaming = async (resp, importObject) => {
+				const source = await (await resp).arrayBuffer();
+				return await WebAssembly.instantiate(source, importObject);
+			};
+		}
+
+		const go = new Go();
+		let mod, inst;
+		WebAssembly.instantiateStreaming(fetch("wasm/main.wasm"), go.importObject).then((result) => {
+			mod = result.module;
+			inst = result.instance;
+			go.run(inst);
+			document.getElementById("runButton").disabled = false;
+		}).catch((err) => {
+			console.error(err);
+		});
+
+		async function run() {
+			console.clear();
+			const task = $('#task').val();
+			$('#result').text(JSON.stringify(JSON.parse(processTask(task)), null, "\t"));
+		}
+
+		$('select').on('change', function () {
+			$('#task').val(this.value);
+		});
+	</script>
+</body>
+
+</html>
